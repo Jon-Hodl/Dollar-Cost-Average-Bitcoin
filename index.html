@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dollar Cost Average Bitcoin</title>
+  <meta name="description" content="A worst-case scenario Bitcoin DCA calculator. See how much Bitcoin you would have accumulated buying at the daily high.">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #151b29;
+      --text: #f2f2f2;
+      --muted: #9aa3b2;
+      --bitcoin-orange: #f7931a;
+      --green: #22c55e;
+      --red: #ef4444;
+      --border: #2a3348;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    header { text-align: center; margin-bottom: 2rem; }
+    h1 { margin: 0; font-size: 2rem; }
+    .subtitle { color: var(--muted); margin-top: 0.5rem; }
+    .warning {
+      background: rgba(247, 147, 26, 0.1);
+      border: 1px solid var(--bitcoin-orange);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      color: var(--bitcoin-orange);
+      font-size: 0.9rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.35rem; }
+    input, select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 1.25rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--bitcoin-orange);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; }
+    .positive { color: var(--green); }
+    .negative { color: var(--red); }
+    .chart-wrapper { position: relative; height: 320px; margin-top: 1rem; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; }
+    th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    .data-source { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
+    .loading { text-align: center; color: var(--muted); padding: 2rem; }
+    .error { color: var(--red); text-align: center; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💰 Dollar Cost Average Bitcoin</h1>
+      <div class="subtitle">Worst-case scenario Bitcoin DCA calculator</div>
+    </header>
+
+    <div class="warning">
+      <strong>Worst-case assumptions:</strong> Every purchase is simulated at the <strong>daily high</strong>,
+      and the final value is calculated using the <strong>latest daily low</strong>.
+      If this looks good, reality was almost certainly better.
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div>
+          <label for="amount">Investment per period ($)</label>
+          <input type="number" id="amount" value="10" min="1" step="1">
+        </div>
+        <div>
+          <label for="frequency">Frequency</label>
+          <select id="frequency">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div>
+          <label for="startDate">Start date</label>
+          <input type="date" id="startDate">
+        </div>
+        <div>
+          <label for="endDate">End date</label>
+          <input type="date" id="endDate">
+        </div>
+      </div>
+      <button id="calculateBtn" disabled>Loading price data...</button>
+    </div>
+
+    <div id="results" class="hidden">
+      <div class="card">
+        <h2>Summary</h2>
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">Total Invested</div>
+            <div class="stat-value" id="totalInvested">-</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Total BTC</div>
+            <div class="stat-value" id="totalBtc">-</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Current Value</div>
+            <div class="stat-value" id="currentValue">-</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Profit / Loss</div>
+            <div class="stat-value" id="profitLoss">-</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">ROI</div>
+            <div class="stat-value" id="roi">-</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label"># of Purchases</div>
+            <div class="stat-value" id="purchaseCount">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Portfolio Value Over Time</h2>
+        <div class="chart-wrapper">
+          <canvas id="valueChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Purchase History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Price (daily high)</th>
+              <th>Invested</th>
+              <th>BTC Bought</th>
+              <th>Running BTC</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="loading" class="loading hidden">Loading price data...</div>
+    <div id="error" class="error hidden"></div>
+
+    <div class="data-source">
+      Price data from <a href="https://github.com/Jon-Hodl/Bitcoin-Price-Archive" target="_blank" style="color: var(--bitcoin-orange);">Bitcoin Price Archive</a>
+    </div>
+  </div>
+
+  <script>
+    const PRICE_URL = 'https://jon-hodl.github.io/Bitcoin-Price-Archive/prices.json';
+
+    let prices = {};
+    let chart = null;
+
+    const amountInput = document.getElementById('amount');
+    const frequencyInput = document.getElementById('frequency');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const results = document.getElementById('results');
+    const loading = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0
+      }).format(num);
+    }
+
+    function formatBtc(num) {
+      return num.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' BTC';
+    }
+
+    function formatPercent(num) {
+      return num.toLocaleString('en-US', { maximumFractionDigits: 2 }) + '%';
+    }
+
+    async function loadPrices() {
+      try {
+        const response = await fetch(PRICE_URL);
+        if (!response.ok) throw new Error('Failed to load price data');
+        prices = await response.json();
+        const dates = Object.keys(prices).sort();
+        startDateInput.min = dates[0];
+        startDateInput.max = dates[dates.length - 1];
+        endDateInput.min = dates[0];
+        endDateInput.max = dates[dates.length - 1];
+        // Default: 2 years back to yesterday
+        const yesterday = dates[dates.length - 2];
+        const twoYearsAgo = new Date(new Date(yesterday).getTime() - 2 * 365 * 24 * 60 * 60 * 1000);
+        const twoYearsAgoStr = twoYearsAgo.toISOString().split('T')[0];
+        startDateInput.value = twoYearsAgoStr < dates[0] ? dates[0] : twoYearsAgoStr;
+        endDateInput.value = yesterday;
+        calculateBtn.disabled = false;
+        calculateBtn.textContent = 'Calculate';
+      } catch (err) {
+        calculateBtn.disabled = true;
+        calculateBtn.textContent = 'Price data unavailable';
+        errorDiv.textContent = err.message;
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function getPurchaseDates(start, end, frequency) {
+      const dates = [];
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      let current = new Date(startDate);
+
+      while (current <= endDate) {
+        const str = current.toISOString().split('T')[0];
+        if (prices[str]) dates.push(str);
+
+        if (frequency === 'daily') {
+          current.setDate(current.getDate() + 1);
+        } else if (frequency === 'weekly') {
+          current.setDate(current.getDate() + 7);
+        } else if (frequency === 'monthly') {
+          current.setMonth(current.getMonth() + 1);
+        }
+      }
+      return dates;
+    }
+
+    function calculate() {
+      const amount = parseFloat(amountInput.value);
+      const frequency = frequencyInput.value;
+      const start = startDateInput.value;
+      const end = endDateInput.value;
+
+      if (!amount || amount <= 0 || !start || !end) {
+        alert('Please enter valid inputs');
+        return;
+      }
+
+      if (start > end) {
+        alert('Start date must be before end date');
+        return;
+      }
+
+      const dates = getPurchaseDates(start, end, frequency);
+      if (dates.length === 0) {
+        alert('No purchase dates found in selected range');
+        return;
+      }
+
+      const sortedDates = Object.keys(prices).sort();
+      const latestDate = sortedDates[sortedDates.length - 1];
+      const latestLow = prices[latestDate].l;
+
+      let totalInvested = 0;
+      let totalBtc = 0;
+      const history = [];
+      const chartLabels = [];
+      const chartValues = [];
+
+      for (const date of dates) {
+        const dailyHigh = prices[date].h;
+        if (!dailyHigh || dailyHigh <= 0) continue;
+
+        const btcBought = amount / dailyHigh;
+        totalInvested += amount;
+        totalBtc += btcBought;
+
+        const value = totalBtc * latestLow;
+        chartLabels.push(date);
+        chartValues.push(value);
+
+        history.push({
+          date,
+          price: dailyHigh,
+          invested: amount,
+          btcBought,
+          runningBtc: totalBtc
+        });
+      }
+
+      const currentValue = totalBtc * latestLow;
+      const profitLoss = currentValue - totalInvested;
+      const roi = (profitLoss / totalInvested) * 100;
+
+      document.getElementById('totalInvested').textContent = formatCurrency(totalInvested);
+      document.getElementById('totalBtc').textContent = formatBtc(totalBtc);
+      document.getElementById('currentValue').textContent = formatCurrency(currentValue);
+      document.getElementById('profitLoss').textContent = formatCurrency(profitLoss);
+      document.getElementById('profitLoss').className = profitLoss >= 0 ? 'stat-value positive' : 'stat-value negative';
+      document.getElementById('roi').textContent = formatPercent(roi);
+      document.getElementById('roi').className = roi >= 0 ? 'stat-value positive' : 'stat-value negative';
+      document.getElementById('purchaseCount').textContent = dates.length.toLocaleString();
+
+      renderChart(chartLabels, chartValues, totalInvested);
+      renderHistory(history);
+      results.classList.remove('hidden');
+      results.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderChart(labels, values, invested) {
+      const ctx = document.getElementById('valueChart').getContext('2d');
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Portfolio Value (worst case)',
+              data: values,
+              borderColor: '#f7931a',
+              backgroundColor: 'rgba(247, 147, 26, 0.1)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 0,
+              pointHoverRadius: 4
+            },
+            {
+              label: 'Total Invested',
+              data: labels.map(() => invested),
+              borderColor: '#9aa3b2',
+              borderDash: [5, 5],
+              fill: false,
+              pointRadius: 0,
+              tension: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: {
+            legend: { labels: { color: '#f2f2f2' } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#9aa3b2', maxTicksLimit: 8 }, grid: { color: '#2a3348' } },
+            y: { ticks: { color: '#9aa3b2', callback: (v) => '$' + v.toLocaleString() }, grid: { color: '#2a3348' } }
+          }
+        }
+      });
+    }
+
+    function renderHistory(history) {
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = '';
+
+      // Show first 5 and last 5
+      const toShow = [];
+      if (history.length <= 12) {
+        toShow.push(...history);
+      } else {
+        toShow.push(...history.slice(0, 5));
+        toShow.push({ date: '...', price: null, invested: null, btcBought: null, runningBtc: null });
+        toShow.push(...history.slice(-5));
+      }
+
+      for (const row of toShow) {
+        const tr = document.createElement('tr');
+        if (row.date === '...') {
+          tr.innerHTML = '<td colspan="5" style="text-align:center;color:var(--muted)">...</td>';
+        } else {
+          tr.innerHTML = `
+            <td>${row.date}</td>
+            <td>${formatCurrency(row.price)}</td>
+            <td>${formatCurrency(row.invested)}</td>
+            <td>${formatBtc(row.btcBought)}</td>
+            <td>${formatBtc(row.runningBtc)}</td>
+          `;
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    calculateBtn.addEventListener('click', calculate);
+    loadPrices();
+  </script>
+</body>
+</html>
