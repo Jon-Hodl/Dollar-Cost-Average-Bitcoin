@@ -16,8 +16,9 @@ If the numbers look good under these assumptions, the real-world outcome was alm
 ## Features
 
 - Adjustable investment amount
-- Daily, weekly, or monthly purchase frequency
-- Custom date range
+- Purchase frequency: daily, weekly, biweekly, or monthly
+- "Started investing X years ago"
+- "Accumulate for Y years"
 - Summary stats: total invested, total BTC, current value, profit/loss, ROI
 - Portfolio value chart vs. total invested
 - Purchase history table

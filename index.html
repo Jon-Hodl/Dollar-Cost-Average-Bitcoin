@@ -127,16 +127,34 @@
           <select id="frequency">
             <option value="daily">Daily</option>
             <option value="weekly" selected>Weekly</option>
+            <option value="biweekly">Biweekly</option>
             <option value="monthly">Monthly</option>
           </select>
         </div>
         <div>
-          <label for="startDate">Start date</label>
-          <input type="date" id="startDate">
+          <label for="yearsAgo">Started investing</label>
+          <select id="yearsAgo">
+            <option value="1">1 year ago</option>
+            <option value="2">2 years ago</option>
+            <option value="3" selected>3 years ago</option>
+            <option value="4">4 years ago</option>
+            <option value="5">5 years ago</option>
+            <option value="7">7 years ago</option>
+            <option value="10">10 years ago</option>
+            <option value="15">15 years ago</option>
+          </select>
         </div>
         <div>
-          <label for="endDate">End date</label>
-          <input type="date" id="endDate">
+          <label for="accumulateYears">Accumulation period</label>
+          <select id="accumulateYears">
+            <option value="0.5">6 months</option>
+            <option value="1">1 year</option>
+            <option value="2" selected>2 years</option>
+            <option value="3">3 years</option>
+            <option value="4">4 years</option>
+            <option value="5">5 years</option>
+            <option value="10">10 years</option>
+          </select>
         </div>
       </div>
       <button id="calculateBtn" disabled>Loading price data...</button>
@@ -213,8 +231,8 @@
 
     const amountInput = document.getElementById('amount');
     const frequencyInput = document.getElementById('frequency');
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
+    const yearsAgoInput = document.getElementById('yearsAgo');
+    const accumulateYearsInput = document.getElementById('accumulateYears');
     const calculateBtn = document.getElementById('calculateBtn');
     const results = document.getElementById('results');
     const loading = document.getElementById('loading');
@@ -241,17 +259,6 @@
         const response = await fetch(PRICE_URL);
         if (!response.ok) throw new Error('Failed to load price data');
         prices = await response.json();
-        const dates = Object.keys(prices).sort();
-        startDateInput.min = dates[0];
-        startDateInput.max = dates[dates.length - 1];
-        endDateInput.min = dates[0];
-        endDateInput.max = dates[dates.length - 1];
-        // Default: 2 years back to yesterday
-        const yesterday = dates[dates.length - 2];
-        const twoYearsAgo = new Date(new Date(yesterday).getTime() - 2 * 365 * 24 * 60 * 60 * 1000);
-        const twoYearsAgoStr = twoYearsAgo.toISOString().split('T')[0];
-        startDateInput.value = twoYearsAgoStr < dates[0] ? dates[0] : twoYearsAgoStr;
-        endDateInput.value = yesterday;
         calculateBtn.disabled = false;
         calculateBtn.textContent = 'Calculate';
       } catch (err) {
@@ -260,6 +267,29 @@
         errorDiv.textContent = err.message;
         errorDiv.classList.remove('hidden');
       }
+    }
+
+    function getDateRange() {
+      const dates = Object.keys(prices).sort();
+      const latestDate = dates[dates.length - 1];
+      const latest = new Date(latestDate + 'T00:00:00Z');
+      const yearsAgo = parseFloat(yearsAgoInput.value) || 0;
+      const accumulateYears = parseFloat(accumulateYearsInput.value) || 0;
+
+      const endDate = new Date(latest);
+      endDate.setFullYear(endDate.getFullYear() - yearsAgo);
+
+      const startDate = new Date(endDate);
+      startDate.setFullYear(startDate.getFullYear() - accumulateYears);
+
+      // Clamp to available data
+      const firstDate = new Date(dates[0] + 'T00:00:00Z');
+      if (startDate < firstDate) startDate.setTime(firstDate.getTime());
+
+      return {
+        start: startDate.toISOString().split('T')[0],
+        end: endDate.toISOString().split('T')[0]
+      };
     }
 
     function getPurchaseDates(start, end, frequency) {
@@ -276,6 +306,8 @@
           current.setDate(current.getDate() + 1);
         } else if (frequency === 'weekly') {
           current.setDate(current.getDate() + 7);
+        } else if (frequency === 'biweekly') {
+          current.setDate(current.getDate() + 14);
         } else if (frequency === 'monthly') {
           current.setMonth(current.getMonth() + 1);
         }
@@ -286,16 +318,15 @@
     function calculate() {
       const amount = parseFloat(amountInput.value);
       const frequency = frequencyInput.value;
-      const start = startDateInput.value;
-      const end = endDateInput.value;
 
-      if (!amount || amount <= 0 || !start || !end) {
-        alert('Please enter valid inputs');
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid investment amount');
         return;
       }
 
+      const { start, end } = getDateRange();
       if (start > end) {
-        alert('Start date must be before end date');
+        alert('Selected range exceeds available price data');
         return;
       }
 
