@@ -390,6 +390,10 @@
             <div class="stat-value" id="roi">-</div>
           </div>
           <div class="stat">
+            <div class="stat-label">CAGR</div>
+            <div class="stat-value" id="cagr">-</div>
+          </div>
+          <div class="stat">
             <div class="stat-label"># of Purchases</div>
             <div class="stat-value" id="purchaseCount">-</div>
           </div>
@@ -583,6 +587,11 @@
       const profitLoss = currentValue - totalInvested;
       const roi = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
 
+      const yearsAgo = parseFloat(yearsAgoInput.value) || 1;
+      const cagr = totalInvested > 0 && currentValue > 0
+        ? ((currentValue / totalInvested) ** (1 / yearsAgo) - 1) * 100
+        : 0;
+
       document.getElementById('totalInvested').textContent = formatCurrency(totalInvested);
       document.getElementById('totalBtc').textContent = formatBtc(totalBtc);
       document.getElementById('currentValue').textContent = formatCurrency(currentValue);
@@ -590,6 +599,8 @@
       document.getElementById('profitLoss').className = profitLoss >= 0 ? 'stat-value positive' : 'stat-value negative';
       document.getElementById('roi').textContent = formatPercent(roi);
       document.getElementById('roi').className = roi >= 0 ? 'stat-value positive' : 'stat-value negative';
+      document.getElementById('cagr').textContent = formatPercent(cagr);
+      document.getElementById('cagr').className = cagr >= 0 ? 'stat-value positive' : 'stat-value negative';
       document.getElementById('purchaseCount').textContent = purchaseDates.length.toLocaleString();
 
       renderChart(chartLabels, chartValues, chartInvested);
