@@ -6,6 +6,7 @@
   <title>Dollar Cost Average Bitcoin</title>
   <meta name="description" content="A worst-case scenario Bitcoin DCA calculator. See how much Bitcoin you would have accumulated buying at the daily high.">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
   <style>
     :root {
       --bg: #05080f;
@@ -658,7 +659,16 @@
             verticalHoverLine
           },
           scales: {
-            x: { ticks: { color: '#9aa3b2', maxTicksLimit: 8 }, grid: { color: '#2a3348' } },
+            x: {
+              type: 'time',
+              time: {
+                unit: 'year',
+                displayFormats: { year: 'yyyy' },
+                tooltipFormat: 'yyyy-MM-dd'
+              },
+              ticks: { color: '#9aa3b2', maxRotation: 0 },
+              grid: { color: '#2a3348' }
+            },
             y: { ticks: { color: '#9aa3b2', callback: (v) => '$' + v.toLocaleString() }, grid: { color: '#2a3348' } }
           }
         }
