@@ -5,8 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dollar Cost Average Bitcoin</title>
   <meta name="description" content="A worst-case scenario Bitcoin DCA calculator. See how much Bitcoin you would have accumulated buying at the daily high.">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <script>
+    // Load Chart.js and date adapter dynamically to avoid WordPress stripping external script tags.
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    window.chartJsReady = Promise.all([
+      loadScript('https://cdn.jsdelivr.net/npm/chart.js'),
+      loadScript('https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns')
+    ]);
+  </script>
   <style>
     :root {
       --bg: #05080f;
@@ -40,7 +54,7 @@
     }
 
     .container {
-      max-width: 960px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 2.5rem 1.25rem;
     }
@@ -602,7 +616,7 @@
       return dates;
     }
 
-    function calculate() {
+    async function calculate() {
       const amount = parseFloat(amountInput.value);
       const frequency = frequencyInput.value;
 
@@ -692,13 +706,14 @@
       document.getElementById('cagr').className = cagr >= 0 ? 'stat-value positive' : 'stat-value negative';
       document.getElementById('purchaseCount').textContent = purchaseDates.length.toLocaleString();
 
-      renderChart(chartLabels, chartValues, chartInvested);
+      await renderChart(chartLabels, chartValues, chartInvested);
       renderHistory(history);
       results.classList.remove('hidden');
       results.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function renderChart(labels, values, investedOverTime) {
+    async function renderChart(labels, values, investedOverTime) {
+      await window.chartJsReady;
       const ctx = document.getElementById('valueChart').getContext('2d');
       if (chart) chart.destroy();
 
