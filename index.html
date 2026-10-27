@@ -131,9 +131,7 @@
     }
 
     label {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
+      display: block;
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--muted);
@@ -142,62 +140,11 @@
       margin-bottom: 0.4rem;
     }
 
-    .info-icon {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--border);
+    .strategy-help {
       color: var(--muted);
-      font-size: 0.65rem;
-      font-weight: 700;
-      cursor: help;
-      flex-shrink: 0;
-    }
-
-    .info-icon:hover { color: var(--text); background: rgba(247, 147, 26, 0.3); }
-
-    .tooltip {
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      width: 220px;
-      padding: 0.65rem 0.85rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.8rem;
-      font-weight: 400;
-      text-transform: none;
-      letter-spacing: normal;
-      line-height: 1.4;
-      box-shadow: var(--shadow);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.15s, visibility 0.15s;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    .tooltip::after {
-      content: '';
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: var(--border);
-    }
-
-    .info-icon:hover .tooltip,
-    .info-icon:focus .tooltip {
-      opacity: 1;
-      visibility: visible;
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
     }
 
     input, select {
@@ -360,19 +307,14 @@
 
     <div class="card">
       <h2><span class="icon">🎛</span> Strategy</h2>
+      <p class="strategy-help">Set how much you bought, how often, when you started, and for how long you kept buying.</p>
       <div class="form-grid">
         <div>
-          <label for="amount">
-            Amount To Buy ($)
-            <span class="info-icon" tabindex="0">i<span class="tooltip">The dollar amount you invest each time you buy Bitcoin.</span></span>
-          </label>
+          <label for="amount">Amount To Buy ($)</label>
           <input type="number" id="amount" value="10" min="1" step="1">
         </div>
         <div>
-          <label for="frequency">
-            How Often
-            <span class="info-icon" tabindex="0">i<span class="tooltip">How frequently you make your Bitcoin purchases.</span></span>
-          </label>
+          <label for="frequency">How Often</label>
           <select id="frequency">
             <option value="daily">Daily</option>
             <option value="weekly" selected>Weekly</option>
@@ -381,10 +323,7 @@
           </select>
         </div>
         <div>
-          <label for="yearsAgo">
-            Your First Buy
-            <span class="info-icon" tabindex="0">i<span class="tooltip">How long ago you made your first Bitcoin purchase.</span></span>
-          </label>
+          <label for="yearsAgo">Your First Buy</label>
           <select id="yearsAgo">
             <option value="1">1 year ago</option>
             <option value="2">2 years ago</option>
@@ -404,10 +343,7 @@
           </select>
         </div>
         <div>
-          <label for="accumulateYears">
-            How Long
-            <span class="info-icon" tabindex="0">i<span class="tooltip">How many years you continued making regular purchases.</span></span>
-          </label>
+          <label for="accumulateYears">How Long</label>
           <select id="accumulateYears">
             <option value="1">1 year</option>
             <option value="2" selected>2 years</option>
@@ -800,8 +736,26 @@
       }
     }
 
+    function updateAccumulateOptions() {
+      const maxYears = parseInt(yearsAgoInput.value, 10) || 15;
+      const currentValue = parseInt(accumulateYearsInput.value, 10);
+
+      for (let i = 0; i < accumulateYearsInput.options.length; i++) {
+        const option = accumulateYearsInput.options[i];
+        const val = parseInt(option.value, 10);
+        option.disabled = val > maxYears;
+        option.hidden = val > maxYears;
+      }
+
+      if (currentValue > maxYears) {
+        accumulateYearsInput.value = String(maxYears);
+      }
+    }
+
+    yearsAgoInput.addEventListener('change', updateAccumulateOptions);
     calculateBtn.addEventListener('click', calculate);
     loadPrices();
+    updateAccumulateOptions();
   </script>
 </body>
 </html>
