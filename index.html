@@ -637,23 +637,30 @@
         if (prices[str]) {
           if (purchaseSet.has(str)) {
             const dailyHigh = prices[str].h;
-            if (dailyHigh && dailyHigh > 0) {
-              const btcBought = amount / dailyHigh;
-              totalInvested += amount;
-              totalBtc += btcBought;
+            if (dailyHigh) {
+              if (dailyHigh > 0) {
+                const btcBought = amount / dailyHigh;
+                totalInvested += amount;
+                totalBtc += btcBought;
 
-              history.push({
-                date: str,
-                price: dailyHigh,
-                invested: amount,
-                btcBought,
-                runningBtc: totalBtc
-              });
+                history.push({
+                  date: str,
+                  price: dailyHigh,
+                  invested: amount,
+                  btcBought,
+                  runningBtc: totalBtc
+                });
+              }
             }
           }
 
           const dailyLow = prices[str].l;
-          const value = dailyLow && dailyLow > 0 ? totalBtc * dailyLow : 0;
+          let value = 0;
+          if (dailyLow) {
+            if (dailyLow > 0) {
+              value = totalBtc * dailyLow;
+            }
+          }
           chartLabels.push(str);
           chartValues.push(value);
           chartInvested.push(totalInvested);
@@ -667,9 +674,12 @@
       const roi = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
 
       const yearsAgo = parseFloat(yearsAgoInput.value) || 1;
-      const cagr = totalInvested > 0 && currentValue > 0
-        ? ((currentValue / totalInvested) ** (1 / yearsAgo) - 1) * 100
-        : 0;
+      let cagr = 0;
+      if (totalInvested > 0) {
+        if (currentValue > 0) {
+          cagr = ((currentValue / totalInvested) ** (1 / yearsAgo) - 1) * 100;
+        }
+      }
 
       document.getElementById('totalInvested').textContent = formatCurrency(totalInvested);
       document.getElementById('totalBtc').textContent = formatBtc(totalBtc);
