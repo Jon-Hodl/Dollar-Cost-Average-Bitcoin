@@ -291,15 +291,16 @@
       const yearsAgo = parseFloat(yearsAgoInput.value) || 0;
       const accumulateYears = parseFloat(accumulateYearsInput.value) || 0;
 
-      const endDate = new Date(latest);
-      endDate.setFullYear(endDate.getFullYear() - yearsAgo);
+      const startDate = new Date(latest);
+      startDate.setFullYear(startDate.getFullYear() - yearsAgo);
 
-      const startDate = new Date(endDate);
-      startDate.setFullYear(startDate.getFullYear() - accumulateYears);
+      const endDate = new Date(startDate);
+      endDate.setFullYear(endDate.getFullYear() + accumulateYears);
 
       // Clamp to available data
       const firstDate = new Date(dates[0] + 'T00:00:00Z');
       if (startDate < firstDate) startDate.setTime(firstDate.getTime());
+      if (endDate > latest) endDate.setTime(latest.getTime());
 
       return {
         start: startDate.toISOString().split('T')[0],
