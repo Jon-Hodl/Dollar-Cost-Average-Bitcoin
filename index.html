@@ -408,6 +408,26 @@
       const ctx = document.getElementById('valueChart').getContext('2d');
       if (chart) chart.destroy();
 
+      const verticalHoverLine = {
+        id: 'verticalHoverLine',
+        beforeDraw: (chart) => {
+          const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+          const activeElements = chart.getActiveElements();
+          if (activeElements.length === 0) return;
+
+          const xPos = x.getPixelForValue(activeElements[0].index);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(xPos, top);
+          ctx.lineTo(xPos, bottom);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(247, 147, 26, 0.5)';
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.restore();
+        }
+      };
+
       chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -421,7 +441,10 @@
               fill: true,
               tension: 0.3,
               pointRadius: 0,
-              pointHoverRadius: 4
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#f7931a',
+              pointHoverBorderColor: '#fff',
+              pointHoverBorderWidth: 2
             },
             {
               label: 'Total Invested',
@@ -430,6 +453,10 @@
               borderDash: [5, 5],
               fill: false,
               pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#9aa3b2',
+              pointHoverBorderColor: '#fff',
+              pointHoverBorderWidth: 2,
               tension: 0
             }
           ]
@@ -438,13 +465,15 @@
           responsive: true,
           maintainAspectRatio: false,
           interaction: { intersect: false, mode: 'index' },
+          hover: { intersect: false, mode: 'index' },
           plugins: {
             legend: { labels: { color: '#f2f2f2' } },
             tooltip: {
               callbacks: {
                 label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`
               }
-            }
+            },
+            verticalHoverLine
           },
           scales: {
             x: { ticks: { color: '#9aa3b2', maxTicksLimit: 8 }, grid: { color: '#2a3348' } },
