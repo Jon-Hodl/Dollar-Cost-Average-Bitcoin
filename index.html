@@ -273,99 +273,67 @@
       font-weight: 600;
     }
 
-    .support-btn {
-      display: block;
-      width: 100%;
-      max-width: 260px;
-      margin: 1.75rem auto 0;
-      padding: 0.85rem 1.25rem;
-      background: transparent;
-      color: var(--bitcoin-orange);
-      border: 1px solid rgba(247, 147, 26, 0.35);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+    .donation-card {
+      text-align: center;
+      padding: 1.75rem;
+      margin-top: 1.75rem;
+      background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(247, 147, 26, 0.04) 100%);
+      border: 1px solid rgba(247, 147, 26, 0.2);
+      border-radius: var(--radius);
     }
 
-    .support-btn:hover {
-      background: rgba(247, 147, 26, 0.1);
-      border-color: rgba(247, 147, 26, 0.6);
+    .donation-card p { margin: 0; }
+    .donation-card .donation-title {
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
     }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
+    .donation-card .donation-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .donation-card .zap-row {
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s, visibility 0.2s;
-      padding: 1rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
-
-    .modal-overlay.active { opacity: 1; visibility: visible; }
-
-    .modal {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-      box-shadow: var(--shadow);
-      transform: translateY(10px);
-      transition: transform 0.2s;
-    }
-
-    .modal-overlay.active .modal { transform: translateY(0); }
-
-    .modal h3 {
-      margin: 0 0 1rem;
-      font-size: 1.35rem;
-    }
-
-    .modal p {
-      color: var(--muted);
-      margin: 0 0 1.5rem;
-      line-height: 1.5;
-    }
-
-    .modal .zap-address {
-      display: inline-block;
+    .donation-card .zap-address {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
       color: var(--bitcoin-orange);
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 700;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       word-break: break-all;
       background: var(--surface);
-      padding: 0.75rem 1rem;
+      padding: 0.65rem 1rem;
       border-radius: 8px;
       border: 1px solid var(--border);
-      margin-bottom: 1.5rem;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
     }
-
-    .modal a { color: var(--bitcoin-orange); text-decoration: none; }
-
-    .modal-close {
+    .donation-card .zap-address:hover {
+      background: rgba(247, 147, 26, 0.1);
+      border-color: rgba(247, 147, 26, 0.4);
+    }
+    .donation-card .copy-btn {
       background: var(--surface);
-      color: var(--text);
+      color: var(--muted);
       border: 1px solid var(--border);
-      padding: 0.65rem 1.5rem;
+      padding: 0.65rem 0.85rem;
       border-radius: 8px;
-      font-size: 0.95rem;
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, color 0.15s;
     }
-
-    .modal-close:hover { background: var(--border); }
+    .donation-card .copy-btn:hover { background: var(--border); color: var(--text); }
+    .donation-card .copy-btn.copied { color: var(--green); }
 
     .loading, .error {
       text-align: center;
@@ -522,14 +490,12 @@
     <div id="loading" class="loading hidden">Loading price data...</div>
     <div id="error" class="error hidden"></div>
 
-    <button class="support-btn" id="supportBtn">🧡 Support this tool</button>
-
-    <div class="modal-overlay" id="supportModal">
-      <div class="modal">
-        <h3>Made with 🧨 by bitcoiners</h3>
-        <p>Built by Jon & Finn for bitcoiners. If you find this tool useful, zaps are always welcome.</p>
-        <div class="zap-address"><a href="lightning:jon-hodl@rizful.com">jon-hodl@rizful.com</a></div>
-        <button class="modal-close" id="closeModal">Close</button>
+    <div class="donation-card">
+      <p class="donation-title">Made with 🧨 by bitcoiners (Jon & Finn) for bitcoiners</p>
+      <p class="donation-subtitle">Zaps are always welcome</p>
+      <div class="zap-row">
+        <a class="zap-address" href="lightning:jon-hodl@rizful.com" id="zapAddress">⚡ jon-hodl@rizful.com</a>
+        <button class="copy-btn" id="copyZapBtn">Copy</button>
       </div>
     </div>
 
@@ -857,20 +823,29 @@
       }
     }
 
-    const supportBtn = document.getElementById('supportBtn');
-    const supportModal = document.getElementById('supportModal');
-    const closeModal = document.getElementById('closeModal');
+    const copyZapBtn = document.getElementById('copyZapBtn');
+    const zapAddressEl = document.getElementById('zapAddress');
 
-    function openModal() { supportModal.classList.add('active'); }
-    function closeModalFn() { supportModal.classList.remove('active'); }
-
-    supportBtn.addEventListener('click', openModal);
-    closeModal.addEventListener('click', closeModalFn);
-    supportModal.addEventListener('click', (e) => {
-      if (e.target === supportModal) closeModalFn();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && supportModal.classList.contains('active')) closeModalFn();
+    copyZapBtn.addEventListener('click', async () => {
+      const address = zapAddressEl.textContent.replace('⚡ ', '').trim();
+      try {
+        await navigator.clipboard.writeText(address);
+        const originalText = copyZapBtn.textContent;
+        copyZapBtn.textContent = 'Copied!';
+        copyZapBtn.classList.add('copied');
+        setTimeout(() => {
+          copyZapBtn.textContent = originalText;
+          copyZapBtn.classList.remove('copied');
+        }, 2000);
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = address;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
     });
 
     yearsAgoInput.addEventListener('change', updateAccumulateOptions);
