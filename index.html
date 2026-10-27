@@ -273,6 +273,26 @@
       font-weight: 600;
     }
 
+    .donation {
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 1.75rem;
+      background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(247, 147, 26, 0.04) 100%);
+      border: 1px solid rgba(247, 147, 26, 0.2);
+      border-radius: var(--radius);
+    }
+
+    .donation p { margin: 0; }
+    .donation .zap-label { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .donation .zap-address {
+      color: var(--bitcoin-orange);
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      word-break: break-all;
+    }
+    .donation a { color: var(--bitcoin-orange); text-decoration: none; }
+
     .loading, .error {
       text-align: center;
       padding: 2rem;
@@ -427,6 +447,11 @@
 
     <div id="loading" class="loading hidden">Loading price data...</div>
     <div id="error" class="error hidden"></div>
+
+    <div class="donation">
+      <p class="zap-label">⚡ Zaps are always welcome</p>
+      <p class="zap-address"><a href="lightning:jon-hodl@rizful.com">jon-hodl@rizful.com</a></p>
+    </div>
 
     <div class="data-source">
       Price data from <a href="https://github.com/Jon-Hodl/Bitcoin-Price-Archive" target="_blank">Bitcoin Price Archive</a>
