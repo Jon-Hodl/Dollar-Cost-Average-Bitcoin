@@ -361,6 +361,7 @@
       const history = [];
       const chartLabels = [];
       const chartValues = [];
+      const chartInvested = [];
 
       for (const date of dates) {
         const dailyHigh = prices[date].h;
@@ -373,6 +374,7 @@
         const value = totalBtc * latestLow;
         chartLabels.push(date);
         chartValues.push(value);
+        chartInvested.push(totalInvested);
 
         history.push({
           date,
@@ -396,13 +398,13 @@
       document.getElementById('roi').className = roi >= 0 ? 'stat-value positive' : 'stat-value negative';
       document.getElementById('purchaseCount').textContent = dates.length.toLocaleString();
 
-      renderChart(chartLabels, chartValues, totalInvested);
+      renderChart(chartLabels, chartValues, chartInvested);
       renderHistory(history);
       results.classList.remove('hidden');
       results.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function renderChart(labels, values, invested) {
+    function renderChart(labels, values, investedOverTime) {
       const ctx = document.getElementById('valueChart').getContext('2d');
       if (chart) chart.destroy();
 
@@ -423,7 +425,7 @@
             },
             {
               label: 'Total Invested',
-              data: labels.map(() => invested),
+              data: investedOverTime,
               borderColor: '#9aa3b2',
               borderDash: [5, 5],
               fill: false,
