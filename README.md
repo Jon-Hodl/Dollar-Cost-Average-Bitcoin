@@ -53,6 +53,6 @@ To add this to `whatisbitcoin.com/tools/DCA-BTC`, paste the contents of `index.h
 
 ## License
 
-[GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE)
+[MIT License](LICENSE)
 
-You are free to use, modify, and distribute this project. If you modify it and run it as a network service, you must publish your changes under the same license.
+Free to use, modify, and distribute. Attribution appreciated.
