@@ -2,7 +2,7 @@
 
 A worst-case scenario Bitcoin dollar-cost averaging (DCA) calculator.
 
-**Live site:** `https://jon-hodl.github.io/dollar-cost-average-bitcoin/`
+**Live site:** `https://jon-hodl.github.io/Dollar-Cost-Average-Bitcoin/`
 
 ## What it does
 
