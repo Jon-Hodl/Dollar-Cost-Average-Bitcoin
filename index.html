@@ -131,13 +131,73 @@
     }
 
     label {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
       font-size: 0.8rem;
       font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       margin-bottom: 0.4rem;
+    }
+
+    .info-icon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--muted);
+      font-size: 0.65rem;
+      font-weight: 700;
+      cursor: help;
+      flex-shrink: 0;
+    }
+
+    .info-icon:hover { color: var(--text); background: rgba(247, 147, 26, 0.3); }
+
+    .tooltip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 220px;
+      padding: 0.65rem 0.85rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: normal;
+      line-height: 1.4;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s, visibility 0.15s;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--border);
+    }
+
+    .info-icon:hover .tooltip,
+    .info-icon:focus .tooltip {
+      opacity: 1;
+      visibility: visible;
     }
 
     input, select {
@@ -302,11 +362,17 @@
       <h2><span class="icon">🎛</span> Strategy</h2>
       <div class="form-grid">
         <div>
-          <label for="amount">Investment per period ($)</label>
+          <label for="amount">
+            Amount To Buy ($)
+            <span class="info-icon" tabindex="0">i<span class="tooltip">The dollar amount you invest each time you buy Bitcoin.</span></span>
+          </label>
           <input type="number" id="amount" value="10" min="1" step="1">
         </div>
         <div>
-          <label for="frequency">Frequency</label>
+          <label for="frequency">
+            How Often
+            <span class="info-icon" tabindex="0">i<span class="tooltip">How frequently you make your Bitcoin purchases.</span></span>
+          </label>
           <select id="frequency">
             <option value="daily">Daily</option>
             <option value="weekly" selected>Weekly</option>
@@ -315,7 +381,10 @@
           </select>
         </div>
         <div>
-          <label for="yearsAgo">Started investing</label>
+          <label for="yearsAgo">
+            Your First Buy
+            <span class="info-icon" tabindex="0">i<span class="tooltip">How long ago you made your first Bitcoin purchase.</span></span>
+          </label>
           <select id="yearsAgo">
             <option value="1">1 year ago</option>
             <option value="2">2 years ago</option>
@@ -335,7 +404,10 @@
           </select>
         </div>
         <div>
-          <label for="accumulateYears">Accumulation period</label>
+          <label for="accumulateYears">
+            How Long
+            <span class="info-icon" tabindex="0">i<span class="tooltip">How many years you continued making regular purchases.</span></span>
+          </label>
           <select id="accumulateYears">
             <option value="1">1 year</option>
             <option value="2" selected>2 years</option>
