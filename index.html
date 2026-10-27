@@ -273,25 +273,99 @@
       font-weight: 600;
     }
 
-    .donation {
-      text-align: center;
-      padding: 1.5rem;
-      margin-top: 1.75rem;
-      background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(247, 147, 26, 0.04) 100%);
-      border: 1px solid rgba(247, 147, 26, 0.2);
-      border-radius: var(--radius);
+    .support-btn {
+      display: block;
+      width: 100%;
+      max-width: 260px;
+      margin: 1.75rem auto 0;
+      padding: 0.85rem 1.25rem;
+      background: transparent;
+      color: var(--bitcoin-orange);
+      border: 1px solid rgba(247, 147, 26, 0.35);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
     }
 
-    .donation p { margin: 0; }
-    .donation .zap-label { color: var(--muted); font-size: 0.9rem; margin-bottom: 0.5rem; }
-    .donation .zap-address {
+    .support-btn:hover {
+      background: rgba(247, 147, 26, 0.1);
+      border-color: rgba(247, 147, 26, 0.6);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+      padding: 1rem;
+    }
+
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transform: translateY(10px);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.active .modal { transform: translateY(0); }
+
+    .modal h3 {
+      margin: 0 0 1rem;
+      font-size: 1.35rem;
+    }
+
+    .modal p {
+      color: var(--muted);
+      margin: 0 0 1.5rem;
+      line-height: 1.5;
+    }
+
+    .modal .zap-address {
+      display: inline-block;
       color: var(--bitcoin-orange);
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       word-break: break-all;
+      background: var(--surface);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
     }
-    .donation a { color: var(--bitcoin-orange); text-decoration: none; }
+
+    .modal a { color: var(--bitcoin-orange); text-decoration: none; }
+
+    .modal-close {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.65rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .modal-close:hover { background: var(--border); }
 
     .loading, .error {
       text-align: center;
@@ -448,9 +522,15 @@
     <div id="loading" class="loading hidden">Loading price data...</div>
     <div id="error" class="error hidden"></div>
 
-    <div class="donation">
-      <p class="zap-label">⚡ Zaps are always welcome</p>
-      <p class="zap-address"><a href="lightning:jon-hodl@rizful.com">jon-hodl@rizful.com</a></p>
+    <button class="support-btn" id="supportBtn">🧡 Support this tool</button>
+
+    <div class="modal-overlay" id="supportModal">
+      <div class="modal">
+        <h3>Made with 🧨 by bitcoiners</h3>
+        <p>Built by Jon & Finn for bitcoiners. If you find this tool useful, zaps are always welcome.</p>
+        <div class="zap-address"><a href="lightning:jon-hodl@rizful.com">jon-hodl@rizful.com</a></div>
+        <button class="modal-close" id="closeModal">Close</button>
+      </div>
     </div>
 
     <div class="data-source">
@@ -776,6 +856,22 @@
         accumulateYearsInput.value = String(maxYears);
       }
     }
+
+    const supportBtn = document.getElementById('supportBtn');
+    const supportModal = document.getElementById('supportModal');
+    const closeModal = document.getElementById('closeModal');
+
+    function openModal() { supportModal.classList.add('active'); }
+    function closeModalFn() { supportModal.classList.remove('active'); }
+
+    supportBtn.addEventListener('click', openModal);
+    closeModal.addEventListener('click', closeModalFn);
+    supportModal.addEventListener('click', (e) => {
+      if (e.target === supportModal) closeModalFn();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && supportModal.classList.contains('active')) closeModalFn();
+    });
 
     yearsAgoInput.addEventListener('change', updateAccumulateOptions);
     calculateBtn.addEventListener('click', calculate);
