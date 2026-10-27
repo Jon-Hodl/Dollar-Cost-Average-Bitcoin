@@ -471,23 +471,28 @@
       const dates = Object.keys(prices).sort();
       const latestDate = dates[dates.length - 1];
       const latest = new Date(latestDate + 'T00:00:00Z');
+      const firstDate = new Date(dates[0] + 'T00:00:00Z');
       const yearsAgo = parseFloat(yearsAgoInput.value) || 0;
       const accumulateYears = parseFloat(accumulateYearsInput.value) || 0;
 
-      const startDate = new Date(latest);
-      startDate.setFullYear(startDate.getFullYear() - yearsAgo);
+      // Chart always spans the full "started investing" period.
+      const chartStart = new Date(latest);
+      chartStart.setFullYear(chartStart.getFullYear() - yearsAgo);
+      if (chartStart < firstDate) chartStart.setTime(firstDate.getTime());
 
-      const endDate = new Date(startDate);
-      endDate.setFullYear(endDate.getFullYear() + accumulateYears);
+      const chartEnd = new Date(latest);
 
-      // Clamp to available data
-      const firstDate = new Date(dates[0] + 'T00:00:00Z');
-      if (startDate < firstDate) startDate.setTime(firstDate.getTime());
-      if (endDate > latest) endDate.setTime(latest.getTime());
+      // Accumulation begins at chart start and lasts for the chosen period.
+      const accumStart = new Date(chartStart);
+      const accumEnd = new Date(chartStart);
+      accumEnd.setFullYear(accumEnd.getFullYear() + accumulateYears);
+      if (accumEnd > chartEnd) accumEnd.setTime(chartEnd.getTime());
 
       return {
-        start: startDate.toISOString().split('T')[0],
-        end: endDate.toISOString().split('T')[0]
+        chartStart: chartStart.toISOString().split('T')[0],
+        chartEnd: chartEnd.toISOString().split('T')[0],
+        accumStart: accumStart.toISOString().split('T')[0],
+        accumEnd: accumEnd.toISOString().split('T')[0]
       };
     }
 
@@ -523,21 +528,14 @@
         return;
       }
 
-      const { start, end } = getDateRange();
-      if (start > end) {
-        alert('Selected range exceeds available price data');
-        return;
-      }
+      const { chartStart, chartEnd, accumStart, accumEnd } = getDateRange();
 
-      const dates = getPurchaseDates(start, end, frequency);
-      if (dates.length === 0) {
+      const purchaseDates = getPurchaseDates(accumStart, accumEnd, frequency);
+      if (purchaseDates.length === 0) {
         alert('No purchase dates found in selected range');
         return;
       }
-
-      const sortedDates = Object.keys(prices).sort();
-      const latestDate = sortedDates[sortedDates.length - 1];
-      const latestLow = prices[latestDate].l;
+      const purchaseSet = new Set(purchaseDates);
 
       let totalInvested = 0;
       let totalBtc = 0;
@@ -546,31 +544,44 @@
       const chartValues = [];
       const chartInvested = [];
 
-      for (const date of dates) {
-        const dailyHigh = prices[date].h;
-        if (!dailyHigh || dailyHigh <= 0) continue;
+      const chartStartDate = new Date(chartStart + 'T00:00:00Z');
+      const chartEndDate = new Date(chartEnd + 'T00:00:00Z');
+      const current = new Date(chartStartDate);
 
-        const btcBought = amount / dailyHigh;
-        totalInvested += amount;
-        totalBtc += btcBought;
+      while (current <= chartEndDate) {
+        const str = current.toISOString().split('T')[0];
 
-        const value = totalBtc * latestLow;
-        chartLabels.push(date);
-        chartValues.push(value);
-        chartInvested.push(totalInvested);
+        if (prices[str]) {
+          if (purchaseSet.has(str)) {
+            const dailyHigh = prices[str].h;
+            if (dailyHigh && dailyHigh > 0) {
+              const btcBought = amount / dailyHigh;
+              totalInvested += amount;
+              totalBtc += btcBought;
 
-        history.push({
-          date,
-          price: dailyHigh,
-          invested: amount,
-          btcBought,
-          runningBtc: totalBtc
-        });
+              history.push({
+                date: str,
+                price: dailyHigh,
+                invested: amount,
+                btcBought,
+                runningBtc: totalBtc
+              });
+            }
+          }
+
+          const dailyLow = prices[str].l;
+          const value = dailyLow && dailyLow > 0 ? totalBtc * dailyLow : 0;
+          chartLabels.push(str);
+          chartValues.push(value);
+          chartInvested.push(totalInvested);
+        }
+
+        current.setDate(current.getDate() + 1);
       }
 
-      const currentValue = totalBtc * latestLow;
+      const currentValue = chartValues[chartValues.length - 1];
       const profitLoss = currentValue - totalInvested;
-      const roi = (profitLoss / totalInvested) * 100;
+      const roi = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
 
       document.getElementById('totalInvested').textContent = formatCurrency(totalInvested);
       document.getElementById('totalBtc').textContent = formatBtc(totalBtc);
@@ -579,7 +590,7 @@
       document.getElementById('profitLoss').className = profitLoss >= 0 ? 'stat-value positive' : 'stat-value negative';
       document.getElementById('roi').textContent = formatPercent(roi);
       document.getElementById('roi').className = roi >= 0 ? 'stat-value positive' : 'stat-value negative';
-      document.getElementById('purchaseCount').textContent = dates.length.toLocaleString();
+      document.getElementById('purchaseCount').textContent = purchaseDates.length.toLocaleString();
 
       renderChart(chartLabels, chartValues, chartInvested);
       renderHistory(history);
