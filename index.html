@@ -8,115 +8,297 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg: #0b0f19;
-      --card: #151b29;
-      --text: #f2f2f2;
-      --muted: #9aa3b2;
+      --bg: #05080f;
+      --surface: #0f1522;
+      --card: #161d2d;
+      --text: #f8fafc;
+      --muted: #94a3b8;
       --bitcoin-orange: #f7931a;
+      --bitcoin-orange-soft: rgba(247, 147, 26, 0.12);
       --green: #22c55e;
       --red: #ef4444;
-      --border: #2a3348;
+      --border: #1e293b;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      --radius: 16px;
     }
+
     * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.6;
+      background-image:
+        radial-gradient(circle at 10% 0%, rgba(247, 147, 26, 0.08) 0%, transparent 35%),
+        radial-gradient(circle at 90% 100%, rgba(247, 147, 26, 0.05) 0%, transparent 35%);
+      background-attachment: fixed;
     }
+
     .container {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
-      padding: 2rem 1rem;
+      padding: 2.5rem 1.25rem;
     }
-    header { text-align: center; margin-bottom: 2rem; }
-    h1 { margin: 0; font-size: 2rem; }
-    .subtitle { color: var(--muted); margin-top: 0.5rem; }
-    .warning {
-      background: rgba(247, 147, 26, 0.1);
-      border: 1px solid var(--bitcoin-orange);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
       color: var(--bitcoin-orange);
-      font-size: 0.9rem;
+      background: var(--bitcoin-orange-soft);
+      border: 1px solid rgba(247, 147, 26, 0.25);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 1rem;
     }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #f7931a 0%, #ffbd66 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 0.75rem;
+      font-size: 1.1rem;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .warning {
+      background: linear-gradient(135deg, rgba(247, 147, 26, 0.1) 0%, rgba(247, 147, 26, 0.04) 100%);
+      border: 1px solid rgba(247, 147, 26, 0.2);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+      color: #ffcc80;
+      font-size: 0.95rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .warning strong { color: var(--bitcoin-orange); }
+
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow);
     }
+
+    .card h2 {
+      margin: 0 0 1.25rem 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card h2 .icon {
+      font-size: 1.1em;
+    }
+
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
     }
-    label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.35rem; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+
     input, select {
       width: 100%;
-      padding: 0.6rem 0.75rem;
-      background: var(--bg);
+      padding: 0.85rem 1rem;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 10px;
       color: var(--text);
       font-size: 1rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
     }
+
+    input:focus, select:focus {
+      border-color: var(--bitcoin-orange);
+      box-shadow: 0 0 0 3px rgba(247, 147, 26, 0.15);
+    }
+
     button {
-      margin-top: 1.25rem;
+      margin-top: 1.5rem;
       width: 100%;
-      padding: 0.85rem;
-      background: var(--bitcoin-orange);
+      padding: 1rem;
+      background: linear-gradient(135deg, #f7931a 0%, #f9a825 100%);
       color: #000;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
       cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 8px 24px rgba(247, 147, 26, 0.25);
     }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 32px rgba(247, 147, 26, 0.35);
+    }
+
+    button:active:not(:disabled) { transform: translateY(0); }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 1rem;
-      margin-top: 1.5rem;
     }
+
     .stat {
-      background: var(--bg);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem;
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: transform 0.15s, border-color 0.15s;
     }
-    .stat-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
-    .stat-value { font-size: 1.4rem; font-weight: 700; }
+
+    .stat:hover {
+      transform: translateY(-2px);
+      border-color: rgba(247, 147, 26, 0.3);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
     .positive { color: var(--green); }
     .negative { color: var(--red); }
-    .chart-wrapper { position: relative; height: 320px; margin-top: 1rem; }
+
+    .chart-wrapper {
+      position: relative;
+      height: 360px;
+      margin-top: 0.5rem;
+    }
+
     .hidden { display: none; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; }
-    th, td { padding: 0.6rem; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 500; }
-    .data-source { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 2rem; }
-    .loading { text-align: center; color: var(--muted); padding: 2rem; }
-    .error { color: var(--red); text-align: center; padding: 2rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.85rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+    .data-source {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 2.5rem;
+    }
+
+    .data-source a {
+      color: var(--bitcoin-orange);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .loading, .error {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+    }
+
+    .error { color: var(--red); }
+
+    @media (max-width: 600px) {
+      .container { padding: 1.5rem 1rem; }
+      .card { padding: 1.25rem; }
+      .chart-wrapper { height: 280px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>💰 Dollar Cost Average Bitcoin</h1>
-      <div class="subtitle">Worst-case scenario Bitcoin DCA calculator</div>
+      <div class="badge">Worst-Case DCA Simulator</div>
+      <h1>Dollar Cost Average <span>Bitcoin</span></h1>
+      <div class="subtitle">See how much Bitcoin you would have accumulated buying at the worst possible price every single time.</div>
     </header>
 
     <div class="warning">
-      <strong>Worst-case assumptions:</strong> Every purchase is simulated at the <strong>daily high</strong>,
-      and the final value is calculated using the <strong>latest daily low</strong>.
-      If this looks good, reality was almost certainly better.
+      <span>⚡</span>
+      <div>
+        <strong>Worst-case assumptions:</strong> Every purchase is simulated at the <strong>daily high</strong>,
+        and the final value is calculated using the <strong>latest daily low</strong>.
+        If this looks good, reality was almost certainly better.
+      </div>
     </div>
 
     <div class="card">
+      <h2><span class="icon">🎛</span> Strategy</h2>
       <div class="form-grid">
         <div>
           <label for="amount">Investment per period ($)</label>
@@ -177,7 +359,14 @@
 
     <div id="results" class="hidden">
       <div class="card">
-        <h2>Summary</h2>
+        <h2><span class="icon">📈</span> Portfolio Value Over Time</h2>
+        <div class="chart-wrapper">
+          <canvas id="valueChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><span class="icon">💰</span> Summary</h2>
         <div class="stats-grid">
           <div class="stat">
             <div class="stat-label">Total Invested</div>
@@ -207,14 +396,7 @@
       </div>
 
       <div class="card">
-        <h2>Portfolio Value Over Time</h2>
-        <div class="chart-wrapper">
-          <canvas id="valueChart"></canvas>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>Purchase History</h2>
+        <h2><span class="icon">📋</span> Purchase History</h2>
         <table>
           <thead>
             <tr>
@@ -234,7 +416,7 @@
     <div id="error" class="error hidden"></div>
 
     <div class="data-source">
-      Price data from <a href="https://github.com/Jon-Hodl/Bitcoin-Price-Archive" target="_blank" style="color: var(--bitcoin-orange);">Bitcoin Price Archive</a>
+      Price data from <a href="https://github.com/Jon-Hodl/Bitcoin-Price-Archive" target="_blank">Bitcoin Price Archive</a>
     </div>
   </div>
 
@@ -310,8 +492,8 @@
 
     function getPurchaseDates(start, end, frequency) {
       const dates = [];
-      const startDate = new Date(start);
-      const endDate = new Date(end);
+      const startDate = new Date(start + 'T00:00:00Z');
+      const endDate = new Date(end + 'T00:00:00Z');
       let current = new Date(startDate);
 
       while (current <= endDate) {
